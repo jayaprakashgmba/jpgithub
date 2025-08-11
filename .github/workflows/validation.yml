@@ -40,4 +40,4 @@ jobs:
 
       - name: Deploy metadata
         run: |
-          sfdx force:source:deploy -p force-app --testlevel NoTestRun
+          sfdx force:source:deploy -p force-app --testlevel NoTestRun 
