@@ -1,0 +1,27 @@
+name: Deploy to Salesforce
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Salesforce CLI
+        uses: sfdx-actions/setup-sfdx@v1
+        with:
+          version: latest
+
+      - name: Authenticate to Salesforce
+        run: |
+          echo "${{ secrets.SF_AUTH_URL }}" > sfdx-auth-url.txt
+          sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --setdefaultusername
+
+      - name: Deploy metadata
+        run: |
+          sfdx force:source:deploy -p force-app --testlevel NoTestRun
