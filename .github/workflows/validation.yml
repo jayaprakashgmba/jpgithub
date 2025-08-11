@@ -19,6 +19,9 @@ jobs:
           
       - run: echo "🐧 GitHub Action running on ${{ runner.os }}"
       - run: echo "🔎 Retrieving Dev Branch from ${{ github.repository }}."
+      - uses: actions/checkout@v4
+        with: 
+          ref: 'main'
 
       - name: Authenticate to Salesforce
         run: |
