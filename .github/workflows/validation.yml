@@ -44,13 +44,16 @@ jobs:
         run: echo y | sf plugins install sfdx-git-delta
 
       # Step 6: Generate delta package
+            # Step: Generate Delta
       - name: Generate Delta
         run: |
+          mkdir -p delta
           sf sgd:source:delta \
             --to "HEAD" \
             --from "origin/main" \
-            --output "delta" \
+            --output delta \
             --ignore .github/workflows/ignore.txt
+
 
       # Step 7: Deploy delta package to Salesforce
       - name: Deploy to Salesforce
