@@ -8,10 +8,20 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # ✅ Ensure Node.js 20+ for sfdx-git-delta
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ✅ Install Salesforce CLI
       - name: Set up Salesforce CLI
         uses: sfdx-actions/setup-sfdx@v1
         with:
@@ -19,32 +29,37 @@ jobs:
           
       - run: echo "🐧 GitHub Action running on ${{ runner.os }}"
       - run: echo "🔎 Retrieving Dev Branch from ${{ github.repository }}."
-       
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       
-    
+      # Python environment for XML parsing
       - name: Setup Python Environment
         run: |
           python3 -m venv venv
           . venv/bin/activate
           pip install --upgrade pip
-          pip install xq
-          pip install yq
+          pip install xq yq
 
+      # Authenticate to Salesforce
       - name: Authenticate to Salesforce
         run: |
           echo "${{ secrets.SF_AUTH_URL }}" > sfdx-auth-url.txt
-          sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --setdefaultusername
-      - name: Install sfdxGit delta
+          sf org login sfdx-url --sfdx-url-file sfdx-auth-url.txt --alias PROD --set-default
+
+      # ✅ Install sfdx-git-delta (Node 20 now avoids the error)
+      - name: Install sfdx-git-delta
         run: |
           echo y | sf plugins install sfdx-git-delta
-          sf sgd:source:delta --to "HEAD" --from "origin/main"  --output "." --ignore .github/workflows/ignore.txt
+          sf sgd:source:delta --to "HEAD" --from "origin/main" --output "." --ignore .github/workflows/ignore.txt
+
+      # Update API Version
       - name: Update API Version in package.xml
         run: |
           sed -i 's|<version>55.0</version>|<version>61.0</version>|g' package/package.xml
           cat package/package.xml
+
+      # Deploy metadata
       - name: Deploy metadata
         run: |
-          sfdx force:source:deploy -p force-app --testlevel NoTestRun 
+          sfdx force:source:deploy \
+            -p force-app \
+            --testlevel NoTestRun
+
