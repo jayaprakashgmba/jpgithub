@@ -37,7 +37,14 @@ jobs:
         run: |
           echo "${{ secrets.SF_AUTH_URL }}" > sfdx-auth-url.txt
           sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --setdefaultusername
-
+      - name: Install sfdxGit delta
+        run: |
+          echo y | sf plugins install sfdx-git-delta
+          sf sgd:source:delta --to "HEAD" --from "HEAD~1"  --output "." --ignore .github/workflows/ignore.txt
+      - name: Update API Version in package.xml
+        run: |
+          sed -i 's|<version>55.0</version>|<version>61.0</version>|g' package/package.xml
+          cat package/package.xml
       - name: Deploy metadata
         run: |
           sfdx force:source:deploy -p force-app --testlevel NoTestRun 
