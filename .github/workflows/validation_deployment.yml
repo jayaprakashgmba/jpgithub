@@ -1,19 +1,16 @@
-name: Validate & (Optionally) Deploy to Salesforce
+name: Deploy to Salesforce
 
 on:
-  workflow_dispatch: # Trigger manually with a button
-    inputs:
-      deploy:
-        description: "Deploy after validation? (true/false)"
-        required: true
-        default: "false"
+  push:
+    branches:
+      - main
 
 jobs:
-  sf-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout source code
+      # Step 1: Checkout code
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
@@ -25,11 +22,12 @@ jobs:
         with:
           node-version: 20
 
-      # Step 3: Install Salesforce CLI
+      # Step 3: Install Salesforce CLI (sf CLI)
       - name: Install Salesforce CLI
         run: npm install --global @salesforce/cli
 
       # Step 4: Authenticate using JWT
+            # Step 4: Authenticate using JWT
       - name: Authenticate to Salesforce (JWT)
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
@@ -40,11 +38,13 @@ jobs:
             --instance-url ${{ secrets.SF_LOGIN_URL }} \
             --set-default
 
+
       # Step 5: Install sfdx-git-delta
       - name: Install sfdx-git-delta
         run: echo y | sf plugins install sfdx-git-delta
 
       # Step 6: Generate delta package
+            # Step: Generate Delta
       - name: Generate Delta
         run: |
           mkdir -p delta
@@ -53,24 +53,14 @@ jobs:
             --from "origin/main" \
             --output delta \
             --ignore .github/workflows/ignore.txt
-          ls -R delta
 
-      # Step 7: Validate Changes
-      - name: Validate in Salesforce
+
+      # Step 7: Deploy delta package to Salesforce
+            # Deploy metadata
+      - name: Validate Changes in Salesforce
         run: |
           if [ -z "$(ls -A delta)" ]; then
             echo "✅ No changes to validate."
           else
             sf project deploy validate -d delta --test-level RunLocalTests
-          fi
-
-      # Step 8: Deploy only if 'deploy' input is true
-      - name: Deploy to Salesforce
-        if: ${{ github.event.inputs.deploy == 'true' }}
-        run: |
-          if [ -z "$(ls -A delta)" ]; then
-            echo "🚫 No changes to deploy."
-          else
-            echo "🚀 Deploying to Salesforce..."
-            sf project deploy start -d delta --test-level RunLocalTests
           fi
