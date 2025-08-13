@@ -26,10 +26,18 @@ jobs:
         run: npm install --global @salesforce/cli
 
       # Authenticate Salesforce
+      #- name: Authenticate to Salesforce
+        #run: |
+          #echo "${{ secrets.SF_AUTH_URL }}" > sfdx-auth-url.txt
+          #sf auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --set-default-dev-hub
       - name: Authenticate to Salesforce
-        run: |
-          echo "${{ secrets.SF_AUTH_URL }}" > sfdx-auth-url.txt
-          sf auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --set-default-dev-hub
+        run: sf org login jwt \
+          --client-id ${{ secrets.SF_CONSUMER_KEY }} \
+          --jwt-key-file ${{ secrets.SF_SERVER_KEY }}
+          --username ${{ secrets.SF_USERNAME }} \
+          --instance-url ${{ secrets.SF_LOGIN_URL }} \
+          --set-default
+
 
       # Install sfdx-git-delta (now works because Node 20 is used)
       - name: Install sfdx-git-delta
