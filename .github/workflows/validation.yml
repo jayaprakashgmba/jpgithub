@@ -48,7 +48,7 @@ jobs:
       - name: Install sfdx-git-delta
         run: |
           echo y | sf plugins install sfdx-git-delta
-          sf sgd:source:delta --to "HEAD" --from "origin/main" --output "." --ignore .github/workflows/ignore.txt
+        sf sgd:source:delta --to "HEAD" --from "HEAD~1" --output "." --ignore .github/workflows/ignore.txt
 
       # Update API Version
       - name: Update API Version in package.xml
