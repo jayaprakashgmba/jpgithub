@@ -56,8 +56,12 @@ jobs:
 
 
       # Step 7: Deploy delta package to Salesforce
+            # Deploy metadata
       - name: Deploy to Salesforce
         run: |
-          sf project deploy start \
-            --manifest delta/package/package.xml \
-            --test-level NoTestRun
+          if [ -n "$(ls -A delta 2>/dev/null)" ]; then
+            sf project deploy start -d delta --test-level NoTestRun
+          else
+            echo "⚠️ No changes detected in delta folder. Skipping deployment."
+          fi
+
