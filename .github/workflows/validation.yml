@@ -16,9 +16,6 @@ jobs:
         uses: sfdx-actions/setup-sfdx@v1
         with:
           version: latest
-      - uses: salesforcecli/github-action@v2
-        with:
-          version: latest
           
       - run: echo "🐧 GitHub Action running on ${{ runner.os }}"
       - run: echo "🔎 Retrieving Dev Branch from ${{ github.repository }}."
