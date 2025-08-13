@@ -33,7 +33,7 @@ jobs:
       - name: Authenticate to Salesforce
         run: sf org login jwt \
           --client-id ${{ secrets.SF_CONSUMER_KEY }} \
-          --jwt-key-file ${{ secrets.SF_SERVER_KEY }}
+          --jwt-key-file ${{ secrets.SF_SERVER_KEY }}\
           --username ${{ secrets.SF_USERNAME }} \
           --instance-url ${{ secrets.SF_LOGIN_URL }} \
           --set-default
