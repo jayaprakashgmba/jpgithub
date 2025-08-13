@@ -57,11 +57,11 @@ jobs:
 
       # Step 7: Deploy delta package to Salesforce
             # Deploy metadata
-      - name: Deploy to Salesforce
+      - name: Validate Changes in Salesforce
         run: |
-          if [ -n "$(ls -A delta 2>/dev/null)" ]; then
-            sf project validate start -d delta --test-level NoTestRun
+          if [ -z "$(ls -A delta)" ]; then
+            echo "✅ No changes to validate."
           else
-            echo "⚠️ No changes detected in delta folder. Skipping deployment."
+            sf project deploy validate -d delta --test-level NoTestRun
           fi
 
