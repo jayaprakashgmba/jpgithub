@@ -60,7 +60,7 @@ jobs:
       - name: Deploy to Salesforce
         run: |
           if [ -n "$(ls -A delta 2>/dev/null)" ]; then
-            sf project deploy start -d delta --test-level NoTestRun
+            sf project validate start -d delta --test-level NoTestRun
           else
             echo "⚠️ No changes detected in delta folder. Skipping deployment."
           fi
