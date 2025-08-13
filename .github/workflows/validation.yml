@@ -62,6 +62,6 @@ jobs:
           if [ -z "$(ls -A delta)" ]; then
             echo "✅ No changes to validate."
           else
-            sf project deploy validate -d delta --test-level NoTestRun
+            sf project deploy validate -d delta --test-level RunLocalTests
           fi
 
