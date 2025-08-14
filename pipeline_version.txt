@@ -4,30 +4,30 @@ on:
   push:
     branches:
       - main
-      - feature/*   # You can add other branches here if needed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code with full history (needed for delta comparison)
+      # Step 1: Checkout code
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Step 2: Setup Node.js 20
+      # Step 2: Setup Node 20
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Step 3: Install Salesforce CLI
+      # Step 3: Install Salesforce CLI (sf CLI)
       - name: Install Salesforce CLI
         run: npm install --global @salesforce/cli
 
       # Step 4: Authenticate using JWT
+            # Step 4: Authenticate using JWT
       - name: Authenticate to Salesforce (JWT)
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
@@ -38,29 +38,29 @@ jobs:
             --instance-url ${{ secrets.SF_LOGIN_URL }} \
             --set-default
 
-      # Step 5: Install sfdx-git-delta plugin
+
+      # Step 5: Install sfdx-git-delta
       - name: Install sfdx-git-delta
         run: echo y | sf plugins install sfdx-git-delta
 
-      # Step 6: Detect changes automatically and create delta folder
-      - name: Generate Delta from current branch
+      # Step 6: Generate delta package
+            # Step: Generate Delta
+      - name: Generate Delta
         run: |
           mkdir -p delta
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          echo "📌 Current Branch: $CURRENT_BRANCH"
           sf sgd:source:delta \
-            --from "origin/main" \
             --to "HEAD" \
+            --from "origin/main" \
             --output delta \
             --ignore .github/workflows/ignore.txt
-          echo "✅ Delta generation complete."
 
-      # Step 7: Validate or deploy delta changes
+
+      # Step 7: Deploy delta package to Salesforce
+            # Deploy metadata
       - name: Validate Changes in Salesforce
         run: |
           if [ -z "$(ls -A delta)" ]; then
-            echo "✅ No changes detected for deployment."
+            echo "✅ No changes to validate."
           else
-            echo "🚀 Validating changes..."
-            sf project deploy validate -d delta --test-level RunLocalTests
+            sf project deploy validate -d delta --test-level RunLocalTests 
           fi
