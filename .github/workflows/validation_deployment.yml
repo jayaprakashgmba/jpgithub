@@ -1,4 +1,4 @@
-name: Deploy to Salesforce
+name: Deploy to Salesforce with PMD Scan
 
 on:
   push:
@@ -22,11 +22,28 @@ jobs:
         with:
           node-version: 20
 
-      # Step 3: Install Salesforce CLI (sf CLI)
+      # Step 3: Install Salesforce CLI
       - name: Install Salesforce CLI
         run: npm install --global @salesforce/cli
 
-      # Step 4: Authenticate using JWT
+      # Step 4: Install PMD
+      - name: Install PMD
+        run: |
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.0.0/pmd-dist-7.0.0-bin.zip
+          unzip pmd-dist-7.0.0-bin.zip
+          mv pmd-bin-7.0.0 pmd
+          echo "$PWD/pmd/bin" >> $GITHUB_PATH
+
+      # Step 5: Run PMD Scan
+      - name: Run PMD on Apex classes
+        run: |
+          ./pmd/bin/pmd check \
+            -d force-app/main/default/classes \
+            -R pmd-ruleset.xml \
+            -f text \
+            || true
+
+      # Step 6: Authenticate using JWT
       - name: Authenticate to Salesforce (JWT)
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
@@ -37,36 +54,22 @@ jobs:
             --instance-url ${{ secrets.SF_LOGIN_URL }} \
             --set-default
 
-      # Step 5: Install sfdx-git-delta
+      # Step 7: Install sfdx-git-delta
       - name: Install sfdx-git-delta
         run: echo y | sf plugins install sfdx-git-delta
 
-      # Step 6: Generate Delta from current branch changes
-      - name: Generate Delta from branch changes
+      # Step 8: Generate Delta from branch changes
+      - name: Generate Delta
         run: |
           mkdir -p delta
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          echo "📌 Current Branch: $CURRENT_BRANCH"
-          echo "🔍 Comparing $CURRENT_BRANCH with origin/main..."
-          
           sf sgd:source:delta \
             --from "origin/main" \
             --to "HEAD" \
             --output delta \
             --ignore .github/workflows/ignore.txt
-          
-          echo "✅ Delta generation complete."
-          echo "📂 Files in delta folder:"
           ls -R delta
 
-      # Step 7: Upload Delta folder as artifact
-      - name: Upload delta folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: delta-metadata
-          path: delta
-
-      # Step 8: Validate Changes in Salesforce
+      # Step 9: Validate Changes in Salesforce
       - name: Validate Changes in Salesforce
         run: |
           if [ -z "$(ls -A delta)" ]; then
