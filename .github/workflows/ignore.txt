@@ -3,8 +3,8 @@
 .github/workflows/
 
 # Ignore profiles and permissionsets
-force-app/main/default/profiles/*
-force-app/main/default/permissionsets/*
+#force-app/main/default/profiles/*
+#force-app/main/default/permissionsets/*
 
 # Ignore static resources
-force-app/main/default/staticresources/*
+#force-app/main/default/staticresources/*
